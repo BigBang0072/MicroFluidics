@@ -1,0 +1,199 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mixing_index</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-16"><meta name="DC.source" content="mixing_index.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Extracting the location of channel.</a></li><li><a href="#3">Extracting channel and finding mixing index</a></li><li><a href="#4">Dividing the channel into partsof division_length each.</a></li></ul></div><h2>Extracting the location of channel.<a name="1"></a></h2><pre class="codeinput"><span class="keyword">function</span> mixing_index=mixing_index(avg_ref_val,max_deviation,min_deviation,img,background_img)
+</pre><pre class="codeinput"><span class="comment">%===================================================================================%</span>
+<span class="comment">%  NOTE BEFORE USING: "img": is last section image of outlet  or Y accord to use    %</span>
+<span class="comment">%===================================================================================%</span>
+
+<span class="comment">% Detecting the Edge of the channel in the image.</span>
+img=img-background_img;
+[m,n]=size(img);
+strip_window=40;                                                                                                        <span class="comment">%DEPEND $$$$$$$$$$$$$$$$$$ (IMPORTANT)(USER)</span>
+strip_matrix=zeros(m-2*strip_window+1,n);
+<span class="keyword">for</span> i=1:m-2*strip_window+1,
+    first_strip=sum(img(i:i+strip_window-1,:),1);
+    second_strip=sum(img(i+strip_window:i+2*strip_window-1,:),1);
+    strip_matrix(i,:)=abs(second_strip-first_strip);
+<span class="keyword">end</span>
+
+<span class="comment">% Searching the coordinate position of the channel in the raw image.</span>
+observed_channel_width=190;   <span class="comment">%giving miimum seperation apart for two maxima to choose fro the corresping edge.</span>
+max_matrix=sum(strip_matrix(:,650:750),2);                                                                              <span class="comment">%DEPEND, (PROGRAMMER) (horizontal sum to get which row is max)</span>
+[max_m,max_n]=size(max_matrix);
+max_val=0;
+max_index=1;
+<span class="keyword">for</span> i=1:max_m,
+    <span class="keyword">if</span> max_matrix(i,1)&gt;max_val,
+        max_val=max_matrix(i,1);
+        max_index=i;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+max_val_net=max_matrix(max_index,1);
+max_index_next=max_index;
+<span class="keyword">for</span> i=1:max_m,
+    <span class="keyword">if</span> max_matrix(max_index,1)+max_matrix(i,1)&gt;max_val_net &amp;&amp; abs(i-max_index)&gt;observed_channel_width,
+        max_val_net=max_matrix(max_index,1)+max_matrix(i,1);
+        max_index_next=i;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> max_index&gt;max_index_next,
+    lower_limit=max_index_next+ceil(strip_window/2);
+    upper_limit=max_index+ceil(strip_window/2);
+<span class="keyword">else</span>
+    lower_limit=max_index+ceil(strip_window/2);
+    upper_limit=max_index_next+ceil(strip_window/2);
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using mixing_index (line 8)
+Not enough input arguments.
+</pre><h2>Extracting channel and finding mixing index<a name="3"></a></h2><pre class="codeinput">channel_matrix=im2double(img(lower_limit:upper_limit,:),<span class="string">'indexed'</span>);
+division_length=8;  <span class="comment">%cuz of factor of 2048                                                                                        %DEPEND</span>
+division=2048./division_length;
+[a,~]=size(channel_matrix);
+</pre><h2>Dividing the channel into partsof division_length each.<a name="4"></a></h2><pre class="codeinput">mixing_index=zeros(1,division);
+<span class="keyword">for</span> i=1:division,
+    temp_slice=channel_matrix(:,(i-1)*division_length+1:i*division_length);
+    temp=sqrt(sum(sum((((temp_slice-avg_ref_val).^2)./(division_length.*a)),1),2));
+    mixing_index(1,i)=temp;
+<span class="keyword">end</span>
+
+
+mixing_index=map_me(min_deviation,max_deviation,1,0,mixing_index);
+
+plot(mixing_index);
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Extracting the location of channel.
+function mixing_index=mixing_index(avg_ref_val,max_deviation,min_deviation,img,background_img)
+%===================================================================================%
+%  NOTE BEFORE USING: "img": is last section image of outlet  or Y accord to use    %
+%===================================================================================%
+
+% Detecting the Edge of the channel in the image.
+img=img-background_img;
+[m,n]=size(img);
+strip_window=40;                                                                                                        %DEPEND $$$$$$$$$$$$$$$$$$ (IMPORTANT)(USER)
+strip_matrix=zeros(m-2*strip_window+1,n);
+for i=1:m-2*strip_window+1,
+    first_strip=sum(img(i:i+strip_window-1,:),1);
+    second_strip=sum(img(i+strip_window:i+2*strip_window-1,:),1);
+    strip_matrix(i,:)=abs(second_strip-first_strip);
+end
+
+% Searching the coordinate position of the channel in the raw image.
+observed_channel_width=190;   %giving miimum seperation apart for two maxima to choose fro the corresping edge.
+max_matrix=sum(strip_matrix(:,650:750),2);                                                                              %DEPEND, (PROGRAMMER) (horizontal sum to get which row is max)
+[max_m,max_n]=size(max_matrix);
+max_val=0;
+max_index=1;
+for i=1:max_m,
+    if max_matrix(i,1)>max_val,
+        max_val=max_matrix(i,1);
+        max_index=i;
+    end
+end
+max_val_net=max_matrix(max_index,1);
+max_index_next=max_index;
+for i=1:max_m,
+    if max_matrix(max_index,1)+max_matrix(i,1)>max_val_net && abs(i-max_index)>observed_channel_width,
+        max_val_net=max_matrix(max_index,1)+max_matrix(i,1);
+        max_index_next=i;
+    end
+end
+
+if max_index>max_index_next,
+    lower_limit=max_index_next+ceil(strip_window/2);
+    upper_limit=max_index+ceil(strip_window/2);
+else
+    lower_limit=max_index+ceil(strip_window/2);
+    upper_limit=max_index_next+ceil(strip_window/2);
+end
+
+%% Extracting channel and finding mixing index
+
+channel_matrix=im2double(img(lower_limit:upper_limit,:),'indexed');
+division_length=8;  %cuz of factor of 2048                                                                                        %DEPEND
+division=2048./division_length;
+[a,~]=size(channel_matrix);
+
+%% Dividing the channel into partsof division_length each.
+mixing_index=zeros(1,division);
+for i=1:division,
+    temp_slice=channel_matrix(:,(i-1)*division_length+1:i*division_length);
+    temp=sqrt(sum(sum((((temp_slice-avg_ref_val).^2)./(division_length.*a)),1),2));
+    mixing_index(1,i)=temp;
+end
+
+
+mixing_index=map_me(min_deviation,max_deviation,1,0,mixing_index);
+
+plot(mixing_index);
+
+##### SOURCE END #####
+--></body></html>
